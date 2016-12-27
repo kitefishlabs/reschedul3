@@ -35,7 +35,7 @@
                    :data {:info {:version "1.0.0"
                                  :title "Reschedul2 API"
                                  :description "User, auth, admin, proposals, venues..."}
-                          :tags [{:name "user", :description "users"}]}}}
+                          :tags [{:name "api", :description "api"}]}}}
 
         (context "/user/" []
                  (resource

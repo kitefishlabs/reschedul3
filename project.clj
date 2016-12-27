@@ -44,18 +44,25 @@
 
   :plugins [[lein-cprop "1.0.1"]
             [lein-cljsbuild "1.1.4"]
-            [lein-sassc "0.10.4"]
+            ; [lein-sassc "0.10.4"]
+            [lein-less "1.7.5"]
+            [deraen/lein-less4j "0.6.0"]
             [lein-auto "0.1.2"]]
-   :sassc
-   [{:src "resources/scss/screen.scss"
-     :output-to "resources/public/css/screen.css"
-     :style "nested"
-     :import-path "resources/scss"}]
+  ;  :sassc
+  ;  [{:src "resources/scss/screen.scss"
+  ;    :output-to "resources/public/css/screen.css"
+  ;    :style "nested"
+  ;    :import-path "resources/scss"}]
 
-   :auto
-   {"sassc" {:file-pattern #"\.(scss|sass)$" :paths ["resources/scss"]}}
+  ;  :auto
+  ;  {"sassc" {:file-pattern #"\.(scss|sass)$" :paths ["resources/scss"]}}
+  ; :hooks [leiningen.sassc]
 
-  :hooks [leiningen.sassc]
+  :less {
+          :source-paths ["resources/less"]
+          :target-path "resources/public/css"}
+  :hooks [leiningen.less]
+
   :clean-targets ^{:protect false}
   [:target-path [:cljsbuild :builds :app :compiler :output-dir] [:cljsbuild :builds :app :compiler :output-to]]
   :figwheel
@@ -73,7 +80,7 @@
               {:min
                {:source-paths ["src/cljc" "src/cljs" "env/prod/cljs"]
                 :compiler
-                {:output-to "target/cljsbuild/public/js/app.js"
+                {:output-to "target/cljsbuild/public/js/reschedul2.js"
                  :externs ["react/externs/react.js"]
                  :optimizations :advanced
                  :pretty-print false
@@ -98,6 +105,7 @@
                                  [doo "0.1.7"]
                                  [figwheel-sidecar "0.5.8"]
                                  [proto-repl "0.3.1"]]
+
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.14.0"]
                                  [lein-doo "0.1.7"]
                                  [lein-figwheel "0.5.8"]
@@ -109,7 +117,7 @@
                      :compiler
                      {:main "reschedul2.app"
                       :asset-path "/js/out"
-                      :output-to "target/cljsbuild/public/js/app.js"
+                      :output-to "target/cljsbuild/public/js/reschedul2.js"
                       :output-dir "target/cljsbuild/public/js/out"
                       :source-map true
                       :optimizations :none
