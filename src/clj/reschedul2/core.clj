@@ -5,7 +5,8 @@
             [reschedul2.config :refer [env]]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
-            [mount.core :as mount])
+            [mount.core :as mount]
+            [reschedul2.db.core :as db])
   (:gen-class))
 
 (def cli-options

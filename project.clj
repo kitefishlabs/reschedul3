@@ -31,7 +31,8 @@
                  [ring-webjars "0.1.1"]
                  [ring/ring-defaults "0.2.1"]
                  [secretary "1.2.3"]
-                 [selmer "1.10.2"]]
+                 [selmer "1.10.2"]
+                 [com.taoensso/timbre "4.8.0"]]
 
   :min-lein-version "2.0.0"
 
@@ -49,11 +50,11 @@
    [{:src "resources/scss/screen.scss"
      :output-to "resources/public/css/screen.css"
      :style "nested"
-     :import-path "resources/scss"}] 
-  
+     :import-path "resources/scss"}]
+
    :auto
-   {"sassc" {:file-pattern #"\.(scss|sass)$" :paths ["resources/scss"]}} 
-  
+   {"sassc" {:file-pattern #"\.(scss|sass)$" :paths ["resources/scss"]}}
+
   :hooks [leiningen.sassc]
   :clean-targets ^{:protect false}
   [:target-path [:cljsbuild :builds :app :compiler :output-dir] [:cljsbuild :builds :app :compiler :output-to]]
@@ -62,7 +63,7 @@
    :nrepl-port 7002
    :css-dirs ["resources/public/css"]
    :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-  
+
 
   :profiles
   {:uberjar {:omit-source true
@@ -78,8 +79,8 @@
                  :pretty-print false
                  :closure-warnings
                  {:externs-validation :off :non-standard-jsdoc :off}}}}}
-             
-             
+
+
              :aot :all
              :uberjar-name "reschedul2.jar"
              :source-paths ["env/prod/clj"]
@@ -95,7 +96,8 @@
                                  [binaryage/devtools "0.8.3"]
                                  [com.cemerick/piggieback "0.2.2-SNAPSHOT"]
                                  [doo "0.1.7"]
-                                 [figwheel-sidecar "0.5.8"]]
+                                 [figwheel-sidecar "0.5.8"]
+                                 [proto-repl "0.3.1"]]
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.14.0"]
                                  [lein-doo "0.1.7"]
                                  [lein-figwheel "0.5.8"]
@@ -112,9 +114,9 @@
                       :source-map true
                       :optimizations :none
                       :pretty-print true}}}}
-                  
-                  
-                  
+
+
+
                   :doo {:build "test"}
                   :source-paths ["env/dev/clj" "test/clj"]
                   :resource-paths ["env/dev/resources"]
@@ -130,8 +132,8 @@
                      {:output-to "target/test.js"
                       :main "reschedul2.doo-runner"
                       :optimizations :whitespace
-                      :pretty-print true}}}}
-                  
-                  }
+                      :pretty-print true}}}}}
+
+
    :profiles/dev {}
    :profiles/test {}})
