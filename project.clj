@@ -44,19 +44,9 @@
 
   :plugins [[lein-cprop "1.0.1"]
             [lein-cljsbuild "1.1.4"]
-            ; [lein-sassc "0.10.4"]
             [lein-less "1.7.5"]
             [deraen/lein-less4j "0.6.0"]
             [lein-auto "0.1.2"]]
-  ;  :sassc
-  ;  [{:src "resources/scss/screen.scss"
-  ;    :output-to "resources/public/css/screen.css"
-  ;    :style "nested"
-  ;    :import-path "resources/scss"}]
-
-  ;  :auto
-  ;  {"sassc" {:file-pattern #"\.(scss|sass)$" :paths ["resources/scss"]}}
-  ; :hooks [leiningen.sassc]
 
   :less {
           :source-paths ["resources/less"]
