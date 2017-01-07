@@ -5,7 +5,8 @@
 
   :dependencies [[bouncer "1.0.0"]
                  [ch.qos.logback/logback-classic "1.1.7"]
-                 [clj-oauth "1.5.4"]
+                ;  [clj-oauth "1.5.4"]
+                 [buddy "1.0.0"]
                  [cljs-ajax "0.5.8"]
                  [com.novemberain/monger "3.0.0-rc2"]
                  [compojure "1.5.1"]

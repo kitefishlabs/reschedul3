@@ -3,7 +3,7 @@
             [reschedul2.layout :refer [error-page]]
             [reschedul2.routes.home :refer [home-routes]]
             [reschedul2.routes.services :refer [service-routes]]
-            [reschedul2.routes.oauth :refer [oauth-routes]]
+            ; [reschedul2.routes.oauth :refer [oauth-routes]]
             [compojure.route :as route]
             [reschedul2.env :refer [defaults]]
             [mount.core :as mount]
@@ -19,7 +19,7 @@
     (-> #'home-routes
         (wrap-routes middleware/wrap-csrf)
         (wrap-routes middleware/wrap-formats))
-    #'oauth-routes
+    ; #'oauth-routes
     #'service-routes
     (route/not-found
       (:body
