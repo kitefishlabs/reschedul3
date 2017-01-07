@@ -40,16 +40,19 @@
   (mc/insert-and-return db "users" (merge user {:_id (ObjectId.)})))
 
 ; http://stackoverflow.com/questions/2342579/http-status-code-for-update-and-delete#2342589
+; when updating password, does confirm- need to be dissoc'ed???
 
-(defn update-user! [id updated]
+(defn update-user! [updated-user]
   (let
-    [_id (ObjectId. id)
-     res (acknowledged? (mc/update-by-id db "users" _id (dissoc updated :_id)))]
+    [_id (ObjectId. (:_id updated-user))
+     res (acknowledged? (mc/update-by-id db "users" _id (dissoc updated-user :_id)))]
     (stringify-id (mc/find-one-as-map db "users" {:_id _id}))))
-      ;{$set updated}))
 
-(defn delete-user! [_id]
-  (acknowledged? (mc/remove-by-id db "users" _id)))
+
+(defn delete-user! [user]
+  (let [_id (:_id user)]
+    (acknowledged? (mc/remove-by-id db "users" _id))))
+    ; if-let -> ID not found error
 
 
 (defn get-user [id]
@@ -67,8 +70,7 @@
   (mc/find-one-as-map db "users" {:_id (ObjectId. id)}))
 
 (defn get-user-by-username [uname]
-  (let [res (mc/find-one-as-map db "users" {:username uname})]
-    res))
+  (mc/find-one-as-map db "users" {:username uname}))
 
 (defn get-user-by-email [email]
   (mq/with-collection

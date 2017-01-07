@@ -1,32 +1,34 @@
 (ns reschedul2.routes.services
-  (:require [ring.util.http-response :refer [ok not-found]]
+  (:require [ring.util.http-response :refer [ok not-found unauthorized]]
             [ring.util.http-status :as http-status]
             [compojure.api.sweet :refer :all]
+            [compojure.api.meta :refer [restructure-param]]
             [schema.core :as s]
+            [taoensso.timbre :as timbre]
             [reschedul2.db.core :as db]
-            [taoensso.timbre :as timbre]))
+            [reschedul2.routes.services.auth :as auth]
+            [reschedul2.routes.services.users :refer [User ContactInfo NewUser UpdatedUser]]
+            [buddy.auth.accessrules :refer [restrict]]
+            [buddy.auth :refer [authenticated?]]))
 
+(defn admin? [request]
+  (:admin (:identity request)))
 
-; Non-public contact info
-; + all contact info must be protected by auth/perms
-(s/defschema ContactInfo {(s/optional-key :cell-phone)               s/Str
-                          (s/optional-key :second-phone)             s/Str
-                          (s/optional-key :email)                    s/Str
-                          (s/optional-key :address)                  s/Str
-                          (s/optional-key :preferred_contact_method) (s/enum :cell :email :second-phone)})
+(defn access-error [_ _]
+  (unauthorized {:error "unauthorized"}))
 
-; basic user info and embedded contact + social info
-(s/defschema User {:_id                         s/Str
-                   :username                    s/Str
-                   (s/optional-key :password)   s/Str
-                   :first_name                  s/Str
-                   :last_name                   s/Str
-                   :admin                       s/Bool
-                   :role                        s/Str
-                   :contact-info                ContactInfo})
+(defn wrap-restricted [handler rule]
+  (restrict handler {:handler  rule
+                     :on-error access-error}))
 
-(s/defschema NewUser (dissoc User :id))
-(s/defschema UpdatedUser NewUser)
+(defmethod restructure-param :auth-rules
+  [_ rule acc]
+  (update-in acc [:middleware] conj [wrap-restricted rule]))
+
+(defmethod restructure-param :current-user
+  [_ binding acc]
+  (update-in acc [:letks] into [binding `(:identity ~'+compojure-api-request+)]))
+
 
 (defapi service-routes
 
@@ -37,49 +39,101 @@
                                  :description "User, auth, admin, proposals, venues..."}
                           :tags [{:name "api", :description "api"}]}}}
 
-        (context "/user/" []
-                 (resource
-                  {:tags [:user]
-                   :get {:summary "get users"
-                         :description "get all users"
-                         :responses {http-status/ok {:schema [User]}}
-                         :handler (fn [_]
-                                    (ok (db/stringify-ids (db/get-all-users))))}
-                   :post {:summary "adds a user"
-                          :parameters {:body-params NewUser}
-                          :responses {http-status/created {:schema User
-                                                           :description "the created user"
-                                                           :headers {"Location" s/Str}}}
-                          :handler (fn [{body :body-params}]
-                                     (let [new-user (db/create-user! body)]
-                                       (timbre/warn (str "new-user: " new-user "\nP"))
-                                       (ok (db/stringify-id new-user))))}}))
+        (POST "/api/login" req
+          :return auth/LoginResponse
+          :body-params [username :- s/Str
+                        password :- s/Str]
+          :summary "user login handler"
+          (auth/login username password req))
 
-        (context "/user/:id" []
-                 :path-params [id :- s/Str]
-                 (resource
-                  {:tags ["user"]
-                   :get {:x-name ::user
-                         :summary "gets a user"
-                         :responses {ok {:schema User}}
-                         :handler (fn [_]
-                                    (if-let [user (db/get-user id)]
-                                      (ok (db/stringify-id user))
-                                      (http-status/not-found)))}
-                   :put {:summary "updates a user"
-                         :parameters {:body-params UpdatedUser}
-                         :responses {http-status/ok {:schema User}}
-                         :handler (fn [{body :body-params}]
-                                    (if (not (empty? (db/get-user id)))
-                                      (ok (db/update-user! id body))
-                                      (http-status/not-found)))}
-                   :delete {:summary "deletes a user"
-                            :handler (fn [_]
-                                       (db/delete-user! id nil)
-                                       (http-status/no-content))}}))); (GET "/:id"  []
+        (context "/admin" []
+          :auth-rules admin?
+          :tags ["admin"]
+
+          (GET "/user/:username" []
+            :path-params [username :- s/Str]
+            :return auth/SearchResponse
+            :summary "returns user(s?) with matching username"
+            (auth/find-users username)))
+
+      (context "/api" []
+        :auth-rules authenticated?
+        :tags ["private"]
+
+        (POST "/logout" []
+          :return auth/LogoutResponse
+          :summary "remove the user from the session"
+          (auth/logout))))
 
 
-    ; (context "/user/username/" [])
-    ; (context "/user/email/" [])
-    ; (context "/user/zip-code/" [])
-    ; (context "/user/public-info/" []))
+
+
+
+
+
+
+          ;
+          ; (context "/user/" []
+          ;        (resource
+          ;         {:tags [:user]
+          ;          :get {:summary "get users"
+          ;                :description "get all users"
+          ;                :responses {http-status/ok {:schema [User]}}
+          ;                :handler (fn [_]
+          ;                           (ok (db/stringify-ids (db/get-all-users))))}
+          ;          :post {:summary "adds a user"
+          ;                 :parameters {:body-params NewUser}
+          ;                 :responses {http-status/created {:schema User
+          ;                                                  :description "the created user"
+          ;                                                  :headers {"Location" s/Str}}}
+          ;                 :handler (fn [{body :body-params}]
+          ;                            (let [new-user (db/create-user! body)]
+          ;                              (timbre/warn (str "new-user: " new-user "\nP"))
+          ;                              (ok (db/stringify-id new-user))))}}))
+          ;
+          ; (context "/user/:id" []
+          ;        :path-params [id :- s/Str]
+          ;        (resource
+          ;         {:tags ["user"]
+          ;          :get {:x-name ::user
+          ;                :summary "gets a user"
+          ;                :responses {ok {:schema User}}
+          ;                :handler (fn [_]
+          ;                           (if-let [user (db/get-user id)]
+          ;                             (ok (db/stringify-id user))
+          ;                             (http-status/not-found)))}
+          ;          :put {:summary "updates a user"
+          ;                :parameters {:body-params UpdatedUser}
+          ;                :responses {http-status/ok {:schema User}}
+          ;                :handler (fn [{body :body-params}]
+          ;                           (if (not (empty? (db/get-user id)))
+          ;                             (ok (db/update-user! id body))
+          ;                             (http-status/not-found)))}
+          ;          :delete {:summary "deletes a user"
+          ;                   :handler (fn [_]
+          ;                              (db/delete-user! id nil)
+          ;                              (http-status/no-content))}})))))    ; (GET "/:id"  []
+
+
+
+
+
+
+
+
+
+
+
+
+
+          ;  ;;tags
+          ;  (GET "/tags" []
+          ;    :return issues/TagsResult
+          ;    :summary "list available tags"
+          ;    (issues/tags))
+           ;
+          ;  (POST "/tag" []
+          ;    :body-params [tag :- s/Str]
+          ;    :return issues/TagResult
+          ;    :summary "add a new tag"
+          ;    (issues/add-tag! {:tag tag}))))
