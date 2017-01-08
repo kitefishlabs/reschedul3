@@ -5,7 +5,9 @@
             [monger.operators :refer :all]
             [monger.result :refer [acknowledged?]]
             [mount.core :refer [defstate]]
+            [buddy.hashers :as hashers]
             [reschedul2.config :refer [env]]
+            [reschedul2.db.seed :refer [seed-admin-user]]
             [taoensso.timbre :as timbre]
             [ring.util.http-response :refer [not-found]])
   (:import (org.bson.types ObjectId)))
@@ -28,14 +30,18 @@
         (assoc item :_id (ObjectId. (:_id item))) (seq res))))
 
 
-
 (defstate db*
-  :start (-> env :database-url mg/connect-via-uri)
+  :start (->
+            env
+            :database-url
+            mg/connect-via-uri)
   :stop (-> db* :conn mg/disconnect))
 
 (defstate db
   :start (:db db*))
 
+
+; USERS
 (defn create-user! [user]
   (mc/insert-and-return db "users" (merge user {:_id (ObjectId.)})))
 
@@ -78,3 +84,35 @@
     "users"
     (mq/find {:contact-info.email email})
     (mq/sort (array-map :last_name -1))))
+
+
+
+
+(defn seed-database! []
+  ; (let [data-dir (:seed-directory env)
+  ;       directory (clojure.java.io/file data-dir)
+  ;       files (file-seq directory)
+  ;       seed (load-all-seed-venues files)]
+
+  ; (timbre/info "seed venues to insert: " (count seed))
+  (timbre/info "DB: " db)
+  ;(println (str "\n\n\n" seed "\n\n\n"))
+  ;(println (str "\n\n\n" (count (hash-map seed)) "\n\n\n"))
+
+  ; WARNING : everything stubbed fresh on each reset!
+  (mc/remove db "users")
+  ; (mc/remove @db "venues")
+  ; (mc/remove @db "proposals")
+
+  ; (let [response (mc/insert-batch @db "venues" seed)]
+  ;   (timbre/info (str "acknowledged?: " (acknowledged? response))))
+  ; (timbre/info "seed venues to insert: " (count seed))))
+
+  (timbre/info "created seed admin user")
+  (create-user!
+    (->
+      seed-admin-user
+      (dissoc :password-confirm)
+      (update-in [:password] hashers/encrypt))))
+
+      ;do other stuff...

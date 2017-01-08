@@ -39,10 +39,13 @@
     (do
       (log/error "error creating user:" errors)
       (bad-request {:error "invalid user"}))
-    (db/create-user!
-      (-> user
-          (dissoc :password-confirm)
-          (update-in [:password] hashers/encrypt)))))
+
+    (do
+      (log/debug "dissoc!" (:password user))
+      (db/create-user!
+        (-> user
+            (dissoc :password-confirm)
+            (update-in [:password] hashers/encrypt))))))
 
 (handler update-user! [{:keys [password] :as user}]
   (if-let [errors (v/validate-update-user user)]

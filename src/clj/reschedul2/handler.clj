@@ -8,7 +8,6 @@
             [reschedul2.env :refer [defaults]]
             [mount.core :as mount]
             [reschedul2.middleware :as middleware]))
-            ; [reschedul2.db.core :as db]))
 
 (mount/defstate init-app
                 :start ((or (:init defaults) identity))
