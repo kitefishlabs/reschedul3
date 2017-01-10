@@ -8,9 +8,12 @@
                 ;  [clj-oauth "1.5.4"]
                  [buddy "1.0.0"]
                  [cljs-ajax "0.5.8"]
+                 [clj-time "0.12.2"]
                  [com.novemberain/monger "3.0.0-rc2"]
                  [compojure "1.5.1"]
+                 [com.draines/postal "2.0.2"]
                  [cprop "0.1.9"]
+                 [environ "1.1.0"]
                  [luminus-aleph "0.1.5"]
                  [luminus-nrepl "0.1.4"]
                  [luminus/ring-ttl-session "0.3.1"]
@@ -47,7 +50,8 @@
             [lein-cljsbuild "1.1.4"]
             [lein-less "1.7.5"]
             [deraen/lein-less4j "0.6.0"]
-            [lein-auto "0.1.2"]]
+            [lein-auto "0.1.2"]
+            [lein-environ "1.1.0"]]
 
   :less {
           :source-paths ["resources/less"]
@@ -83,6 +87,9 @@
              :uberjar-name "reschedul2.jar"
              :source-paths ["env/prod/clj"]
              :resource-paths ["env/prod/resources"]}
+   ;; Set these in ./profiles.clj
+   :test-env-vars {}
+   :dev-env-vars  {}
 
    :dev           [:project/dev :profiles/dev]
    :test          [:project/dev :project/test :profiles/test]

@@ -2,7 +2,7 @@
   (:require [compojure.core :refer [routes wrap-routes]]
             [reschedul2.layout :refer [error-page]]
             [reschedul2.routes.home :refer [home-routes]]
-            [reschedul2.routes.services :refer [service-routes]]
+            [reschedul2.routes.service :refer [service-routes]]
             ; [reschedul2.routes.oauth :refer [oauth-routes]]
             [compojure.route :as route]
             [reschedul2.env :refer [defaults]]
@@ -26,4 +26,4 @@
                      :title "page not found"})))))
 
 
-(defn app [] (middleware/wrap-base #'app-routes))
+(defn app [] #'app-routes)

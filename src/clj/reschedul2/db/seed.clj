@@ -1,7 +1,6 @@
 (ns reschedul2.db.seed
   (:require [monger.core :as mg]
             [monger.collection :as mc]
-            [monger.query :as mq]
             [monger.operators :refer :all]
             [monger.result :refer [acknowledged?]]
             [mount.core :refer [defstate]]
@@ -14,7 +13,7 @@
 (def seed-admin-user
   { :username "tms"
     :password "changethisworld"
-    :password-confirm "changethisword"
+    :password-confirm "changethisworld"
     :first_name "Tom"
     :last_name "Stoll"
     :admin true
