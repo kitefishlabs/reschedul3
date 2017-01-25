@@ -9,12 +9,12 @@
   {:init
    (fn []
      (parser/cache-off!)
-     (log/info "\n-=[reschedul2 started successfully using the development profile]=-\n\n")
-     (if (:reset-users env)
-      (do
-        (seed-database!)
-        (log/info "\n-=[deleted users table]=-\n\n")
-        (log/info "\n-=[created default admin user]=-\n\n"))))
+     (log/info "\n-=[reschedul2 started successfully using the development profile]=-\n\n"))
+    ;  (if (:reset-users env)
+      ; (do)))
+        ; (seed-database!)
+        ; (log/info "\n-=[deleted users table]=-\n\n")
+        ; (log/info "\n-=[created default admin user]=-\n\n"))))
    :stop
    (fn []
      (log/info "\n-=[reschedul2 has shut down successfully]=-"))
