@@ -14,7 +14,7 @@
            :tags          ["Auth"]
            :return        { :_id String
                             :username String
-                            :permissions String
+                            :permission-level String
                             :token String
                             :refreshToken String}
            :header-params [authorization :- String]

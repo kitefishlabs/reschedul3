@@ -9,7 +9,7 @@
 (defn update-password
   "Update user's password"
   [reset-key key-record new-password]
-  (let [user-id         (:user_id key-record)
+  (let [user-id         (:_id key-record)
         hashed-password (hashers/encrypt new-password)]
     (db/invalidate-reset-key! reset-key)
     (db/update-registered-user-password! user-id hashed-password)
@@ -18,7 +18,7 @@
 (defn password-reset-response
   "Generate response for password update"
   [reset-key new-password]
-  (let [key-record       (db/stringify-id (db/get-reset-row-by-reset-key reset-key))
+  (let [key-record       (db/json-friendly (db/get-reset-row-by-reset-key reset-key))
         key-exists?      (empty? key-record)
         key-valid-until  (c/from-sql-time (:valid_until key-record))
         key-valid?       (t/before? (t/now) key-valid-until)]

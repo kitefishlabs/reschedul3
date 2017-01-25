@@ -5,7 +5,8 @@
             [reschedul2.route-functions.permission.add-user-permission :refer [add-user-permission-response]]
             [reschedul2.route-functions.permission.delete-user-permission :refer [delete-user-permission-response]]
             [schema.core :as s]
-            [compojure.api.sweet :refer :all]))
+            [compojure.api.sweet :refer :all]
+            [taoensso.timbre :as timbre]))
 
 
 (def permission-routes

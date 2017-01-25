@@ -6,8 +6,7 @@
             [monger.result :refer [acknowledged?]]
             [mount.core :refer [defstate]]
             [buddy.hashers :as hashers]
-            [reschedul2.config :refer [env]]
-            [reschedul2.db.seed :refer [seed-admin-user]]
+            [environ.core :refer [env]]
             [taoensso.timbre :as timbre]
             [ring.util.http-response :refer [not-found]])
   (:import (org.bson.types ObjectId)))
@@ -15,23 +14,19 @@
 ; Helpers
 ;
 
-(defn stringify-id [res]
-  (assoc res :_id (str (:_id res))))
 
-(defn objectify-id [res]
-  (assoc res :_id (ObjectId. (:_id res))))
+(defn json-friendly [doc]
+  (let [friendly-id (:_id doc)]
+    (assoc doc :_id (.toString friendly-id))))
 
-(defn stringify-ids [res]
-  (map (fn [item]
-        (assoc item :_id (str (:_id item)))) (seq res)))
-
-(defn objectify-ids [res]
-  (map (fn [item]
-        (assoc item :_id (ObjectId. (:_id item))) (seq res))))
+(defn mongo-friendly [doc]
+  (if (string? (:_id doc))
+    (assoc doc :_id (ObjectId. (:_id doc)))
+    doc))
 
 
 (defstate db*
-  :start (->
+  :start  (->
             env
             :database-url
             mg/connect-via-uri)
@@ -42,51 +37,65 @@
 
 
 ;;;;;;;;;;;;;;;;;
-
-; (defn create-password-reset-key-table-if-not-exists! []
-;   "password-reset-key")
-
-; (defn create-permission-table-if-not-exists! []
-;   "permission-table")
-
-(defn create-basic-permission-if-not-exists! []
-  (mc/insert db "permission" {:permission "basic"})) ; UPSERT ??
-
-; (defn create-registered-user-table-if-not-exists! [])
-
-; (defn truncate-all-tables-in-database! [])
-
-; (defn create-user-permission-table-if-not-exists! [])
-
-
+; create-password-reset-key-table-if-not-exists! []
+; create-permission-table-if-not-exists! []
+; create-basic-permission-if-not-exists! []
+; create-registered-user-table-if-not-exists! [])
+; truncate-all-tables-in-database! [])
+; create-user-permission-table-if-not-exists! [])
 
 ;;;;;;;;;;;;;;;;;
 
-(defn update-registered-user-password! [userid hashedpass]
-  (mc/update db "users" {:_id (ObjectId. userid)} {:password hashedpass}))
+(defn clear-users! []
+  (mc/drop db "users"))
 
-; (defn get-password-reset-keys-for-userid [qmap]
-;   (mc/find-one-as-map db "password-reset-key" qmap))
+(defn clear-permissions! []
+  (mc/drop db "permission"))
+
+(defn clear-user-permissions! []
+  (mc/drop db "user_permission"))
+
+(defn clear-password-reset-keys! []
+  (mc/drop db "password-reset-key"))
+
+
+
+(defn update-registered-user-password! [id hashedpass]
+  (mc/update db "users" {:_id (mongo-friendly id)} {$set {:password hashedpass}}))
+
+(defn get-password-reset-keys-for-userid [qmap]
+  (mc/find-one-as-map db "password-reset-key" qmap))
 
 (defn get-reset-row-by-reset-key [rkey]
   (mc/find-one-as-map db "password-reset-key" {:reset_key rkey}))
 
 (defn insert-password-reset-key-with-default-valid-until! [rkey uid]
-  (mc/insert db "password-reset-key" {:reset_key rkey :user_id uid}))
+  (mc/insert db "password-reset-key" {:reset_key rkey
+                                      :_id uid}))
 
 (defn insert-password-reset-key-with-valid-until-date! [rkey uid valid]
   (mc/insert db "password-reset-key" {:reset_key rkey
-                                      :user_id uid
+                                      :_id uid
                                       :valid_until valid}))
 
 (defn invalidate-reset-key! [rk]
   (mc/update db "users" {:reset_key rk} $set :already_used true))
 
+
 (defn insert-permission! [perm]
   (mc/insert db "permission" {:permission perm}))
 
+
+
 (defn all-registered-users []
-  (mc/find db "users" {}))
+  (mq/with-collection db "users"
+    (mq/find {})
+    (mq/fields [:_id])
+    (mq/sort {:_id -1})))
+    ; (mq/paginate :page 1 :per-page 10)))
+    ;(mq/fields [:_id :email :username])
+    ;(sort (array-map :username 1))
+    ;(mq/paginate :page 1 :per-page 10)))
 
 (defn get-registered-user-by-id [id]
   (mc/find-one-as-map db "users" {:_id (ObjectId. id)}))
@@ -104,55 +113,94 @@
 (defn get-registered-user-details-by-email [email]
   (get-registered-user-by-email email))
 
+
+
 (defn get-registered-user-details-by-refresh-token [rtkn]
-  (mc/find-one-as-map db "users" {:refresh_token rtkn}))
+  (let [refreshed (mc/find-one-as-map db "users" {:refresh_token rtkn})]
+    (timbre/warn (str "\n\n\n refreshed: " refreshed "\n\n\n"))
+    refreshed))
 
 
 
-(defn insert-registered-user! [eml uname pass]
-  (mc/insert-and-return db "users" {:email eml
+(defn insert-registered-user! [eml uname pass created-on]
+  (mc/insert-and-return db "users" {:_id (ObjectId.)
+                                    :email eml
                                     :username uname
-                                    :password pass}))
+                                    :password pass
+                                    :created_on created-on}))
 
+; (defn update-registered-user-permission! [id new-perm]
+;   ; (timbre/warn (str "new perms: " new-perm))
+;   (mc/update-and-return db "users" {:_id (ObjectId. id)} {$set {:permission-level new-perm}}))
 
 (defn update-registered-user! [id new-email new-username new-password new-refresh-token]
-  (mc/update db "users" {:_id (ObjectId. id)} {:email new-email
-                                               :username new-username
-                                               :password new-password
-                                               :refresh-token new-refresh-token}))
+  (mc/update db "users" {:_id id} {$set
+                                    {:email new-email
+                                     :username new-username
+                                     :password new-password
+                                     :refresh_token new-refresh-token}}))
 
 (defn update-registered-user-password! [id new-password]
-  (mc/update db "users" {:_id (ObjectId. id)} {:password new-password}))
+  (mc/update db "users" {:_id (ObjectId. id)} {$set {:password new-password}}))
 
 (defn update-registered-user-refresh-token! [id refresh-token]
-  (mc/update db "users" {:_id (ObjectId. id)} {:refresh-token refresh-token}))
+  (timbre/warn (str "update-registered-user-refresh-token: " id))
+  (let [user-to-refresh (get-registered-user-by-id (.toString id))]
+    (timbre/warn (str "\n\n\n user-to-refresh: " user-to-refresh "\n\n\n\n\n"))
+    (timbre/warn (str "\n\n\n user-to-refresh: " (assoc-in user-to-refresh [:refresh_token] refresh-token) "\n\n\n\n\n"))
+    (mc/save-and-return db "users"
+      (assoc-in user-to-refresh [:refresh_token] refresh-token))))
 
-(defn null-refresh-token! [rtkn]
-  (mc/update db "users" {:refresh-token rtkn} {:refresh-token "0"}))
+
+(defn nullify-refresh-token! [rtkn]
+  (let [user-to-nullify (get-registered-user-details-by-refresh-token rtkn)]
+    (timbre/warn (str "user-to-nullify" user-to-nullify "\n\n\n"))
+    (if (nil? user-to-nullify)
+      nil
+      (mc/save-and-return db "users"
+        (assoc-in user-to-nullify [:refresh_token] 0)))))
+
+; (nullify-refresh-token! "aaa")
+
 
 (defn delete-registered-user! [id]
   (mc/remove db "users" {:_id (ObjectId. id)}))
 
+
+
+(defn get-permission-for-user [uid]
+  (timbre/warn (str "\n\n\n USER PERM GET:  " uid "\n\n\n"))
+  (mc/find-one-as-map db "user_permission" {:user_id (.toString uid)}))
+
 (defn insert-permission-for-user! [uid perm]
-  (mc/insert-and-return db "user_permission" {:user_id uid :permission perm}))
+  (let [uidstr (.toString uid)
+        user-perm (get-permission-for-user uidstr)]
+    (timbre/warn (str "\n\n\n USER PERM:  " uidstr "\n\n\n"))
+    (mc/save-and-return db "user_permission"
+      {:_id (if (nil? user-perm) (ObjectId.) (:_id user-perm))
+       :user_id uidstr
+       :permission perm})))
 
 (defn delete-user-permission! [uid perm]
-  (mc/remove db "user_permission" {:user_id uid :permission perm}))
-
-(defn get-permissions-for-userid [uid]
-  (mc/find-one-as-map db "user_permission" {:user_id uid}))
-
-
-
+  (let [uidstr (.toString uid)]
+    (do
+      (mc/remove db "user_permission" {:user_id uidstr
+                                       :permission perm})
+      (insert-permission-for-user! uidstr "basic"))))
 
 
 
 
+
+
+
+
+; (timbre/warn (str "INSERT PERM FOR USER: " uid " | " perm "\n\n\n"))
 
 
 ; (defn insert-auth-token [auth-record]
 ;   (mc/insert-and-return db "auth-tokens" auth-record))
-;
+
 
 
 ;
@@ -167,7 +215,7 @@
 ;   (let
 ;     [_id (ObjectId. (:_id updated-user))
 ;      res (acknowledged? (mc/update-by-id db "users" _id (dissoc updated-user :_id)))]
-;     (stringify-id (mc/find-one-as-map db "users" {:_id _id}))))
+;     (json-friendly (mc/find-one-as-map db "users" {:_id _id}))))
 ;
 ;
 ; (defn delete-user! [user]
@@ -177,7 +225,7 @@
 ;
 ;
 ; (defn get-user [id]
-;   (stringify-id
+;   (json-friendly
 ;     (mc/find-one-as-map db "users" {:_id (ObjectId. id)})))
 ;
 ; (defn get-all-users []
@@ -203,32 +251,13 @@
 
 
 
-(defn seed-database! []
-  ; (let [data-dir (:seed-directory env)
-  ;       directory (clojure.java.io/file data-dir)
-  ;       files (file-seq directory)
-  ;       seed (load-all-seed-venues files)]
-
-  ; (timbre/info "seed venues to insert: " (count seed))
-  (timbre/info "DB: " db)
-  ;(println (str "\n\n\n" seed "\n\n\n"))
-  ;(println (str "\n\n\n" (count (hash-map seed)) "\n\n\n"))
+(defn seed-database! [db]
+  (timbre/info (str "DB" db)))
+  ; (timbre/info (str "DB: " db)))
 
   ; WARNING : everything stubbed fresh on each reset!
 
-  (mc/remove db "users")
-  (mc/remove db "users")
-  ; (mc/remove @db "venues")
-  ; (mc/remove @db "proposals")
-
-  ; (let [response (mc/insert-batch @db "venues" seed)]
-  ;   (timbre/info (str "acknowledged?: " (acknowledged? response))))
-  ; (timbre/info "seed venues to insert: " (count seed))))
-
-  (timbre/info "created seed admin user"))
-  ; (create-user!
-  ;   (->
-  ;     seed-admin-user
-  ;     (dissoc :password-confirm)
-  ;     (update-in [:password] hashers/encrypt))))
-  ;     ;do other stuff...
+  ; (mc/remove db "password-reset-key")
+  ; (mc/remove db "users")
+  ; (mc/remove db "user_permission")
+  ; (mc/remove db "permission"))

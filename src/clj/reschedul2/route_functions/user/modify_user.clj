@@ -9,7 +9,7 @@
   (let [new-email     (if (empty? email)    (str (:email current-user-info)) email)
         new-username  (if (empty? username) (str (:username current-user-info)) username)
         new-password  (if (empty? password) (:password current-user-info) (hashers/encrypt password))
-        new-user-info (db/stringify-id (db/update-registered-user! (:_id current-user-info)
+        new-user-info (db/json-friendly (db/update-registered-user! (:_id current-user-info)
                                                   new-email
                                                   new-username
                                                   new-password
@@ -20,8 +20,8 @@
   "User is allowed to update attributes for a user if the requester is
    modifying attributes associated with its own id or has admin permissions."
   [request id username password email]
-  (let [auth              (get-in request [:identity :permissions])
-        current-user-info (db/stringify-id (db/get-registered-user-by-id {:_id id}))
+  (let [auth              (get-in request [:identity :permission-level])
+        current-user-info (db/json-friendly (db/get-registered-user-by-id {:_id id}))
         admin?            (.contains auth "admin")
         modifying-self?   (= (str id) (get-in request [:identity :_id]))
         admin-or-self?    (or admin? modifying-self?)

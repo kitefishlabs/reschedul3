@@ -7,12 +7,12 @@
             [taoensso.timbre :as timbre]
             [reschedul2.db.core :as db]
             ; [reschedul2.routes.services.users :refer [User ContactInfo NewUser UpdatedUser]]
-            ; [reschedul2.routes.services.auth :refer :all]
-            ; [reschedul2.routes.services.password :refer :all]
-            ; [reschedul2.routes.services.permission :refer :all]
+            [reschedul2.routes.services.auth :refer :all]
+            [reschedul2.routes.services.password :refer :all]
+            [reschedul2.routes.services.permission :refer :all]
             [reschedul2.routes.services.preflight :refer :all]
-            ; [reschedul2.routes.services.refresh-token :refer :all]
-            ; [reschedul2.routes.services.user :refer :all]
+            [reschedul2.routes.services.refresh-token :refer :all]
+            [reschedul2.routes.services.user :refer :all]
 
             [reschedul2.middleware.basic-auth :refer [basic-auth-mw]]
             [reschedul2.middleware.token-auth :refer [token-auth-mw]]
@@ -39,24 +39,24 @@
 ;   [_ binding acc]
 ;   (update-in acc [:letks] into [binding `(:identity ~'+compojure-api-request+)]))
 
-(defapi service-routes
-  {:swagger
-   {:ui   "/api-docs"
-    :spec "/swagger.json"
-    :data {:info {:title "reschedul2"
-                  :version "0.0.1"}
-           :tags [{:name "Preflight"     :description "Return successful response for all preflight requests"}]}}}
-                  ; {:name "User"          :description "Create, delete and update user details"}
-                  ; {:name "Permission"    :description "Add and remove permissions tied to specific users"}
-                  ; {:name "Refresh-Token" :description "Get and delete refresh-tokens"}
-                  ; {:name "Auth"          :description "Get auth information for a user"}
-                  ; {:name "Password"      :description "Request and confirm password resets"}]}}}
-  preflight-route)
-  ; user-routes
-  ; permission-routes
-  ; refresh-token-routes
-  ; auth-routes)
-  ; password-routes)
+(def service-routes
+  (api
+    {:swagger
+      {:ui   "/api-docs"
+       :spec "/swagger.json"
+       :data {:info {:title "reschedul2"
+                     :version "0.0.1"}
+              :tags [{:name "Preflight"     :description "Return successful response for all preflight requests"}
+                     {:name "User"          :description "Create, delete and update user details"}
+                     {:name "Permission"    :description "Add and remove permissions tied to specific users"}
+                     {:name "Refresh-Token" :description "Get and delete refresh-tokens"}
+                     {:name "Auth"          :description "Get auth information for a user"}]}}}               ; {:name "Password"      :description "Request and confirm password resets"}]}}}
+    preflight-route
+    user-routes
+    permission-routes
+    refresh-token-routes
+    auth-routes
+    password-routes))
 
 
 
@@ -121,7 +121,7 @@
           ;                :description "get all users"
           ;                :responses {http-status/ok {:schema [User]}}
           ;                :handler (fn [_]
-          ;                           (ok (db/stringify-ids (db/get-all-users))))}
+          ;                           (ok (db/json-friendlys (db/get-all-users))))}
           ;          :post {:summary "adds a user"
           ;                 :parameters {:body-params NewUser}
           ;                 :responses {http-status/created {:schema User
@@ -130,7 +130,7 @@
           ;                 :handler (fn [{body :body-params}]
           ;                            (let [new-user (db/create-user! body)]
           ;                              (timbre/warn (str "new-user: " new-user "\nP"))
-          ;                              (ok (db/stringify-id new-user))))}}))
+          ;                              (ok (db/json-friendly new-user))))}}))
           ;
           ; (context "/user/:id" []
           ;        :path-params [id :- s/Str]
@@ -141,7 +141,7 @@
           ;                :responses {ok {:schema User}}
           ;                :handler (fn [_]
           ;                           (if-let [user (db/get-user id)]
-          ;                             (ok (db/stringify-id user))
+          ;                             (ok (db/json-friendly user))
           ;                             (http-status/not-found)))}
           ;          :put {:summary "updates a user"
           ;                :parameters {:body-params UpdatedUser}

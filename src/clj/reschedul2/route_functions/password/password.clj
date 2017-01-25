@@ -10,5 +10,5 @@
   {:_id s/Str
    :reset_key s/Str
    :already_used s/Bool
-   :user_id     s/Str
+   :_id     s/Str
    :valid_until s/Int})

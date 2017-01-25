@@ -56,7 +56,6 @@
   :less {
           :source-paths ["resources/less"]
           :target-path "resources/public/css"}
-  :hooks [leiningen.less]
 
   :clean-targets ^{:protect false}
   [:target-path [:cljsbuild :builds :app :compiler :output-dir] [:cljsbuild :builds :app :compiler :output-to]]
@@ -108,6 +107,7 @@
                                  [lein-doo "0.1.7"]
                                  [lein-figwheel "0.5.8"]
                                  [org.clojure/clojurescript "1.9.293"]]
+                  :hooks [leiningen.less]
                   :cljsbuild
                   {:builds
                    {:app
@@ -142,4 +142,4 @@
 
 
    :profiles/dev {}
-   :profiles/test {}})
+   :profiles/test [:test-env-vars]})

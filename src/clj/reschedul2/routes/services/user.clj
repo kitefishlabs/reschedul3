@@ -34,7 +34,7 @@
              :path-params   [id :- s/Str] ; was a uuid
              :body-params   [{username :- String ""} {password :- String ""} {email :- String ""}]
              :header-params [authorization :- String]
-             :return        {:id s/Uuid :email String :username String}
+             :return        {:_id String :email String :username String}
              :middleware    [token-auth-mw cors-mw authenticated-mw]
              :summary       "Update some or all fields of a specified user. Requires token to have `admin` auth or self ID."
              :description   "Authorization header expects the following format 'Token {token}'"
