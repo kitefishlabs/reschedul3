@@ -1,7 +1,7 @@
-(ns reschedul2.test.handler
+(ns reschedul2.handlers
   (:require [clojure.test :refer :all]
             [ring.mock.request :refer :all]
-            [reschedul2.handler :refer :all]))
+            [reschedul2.handler :refer [app]]))
 
 (deftest test-app
   (testing "main route"
