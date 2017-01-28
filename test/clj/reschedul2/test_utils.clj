@@ -26,8 +26,6 @@
   (let [initial-response ((app) (-> (mock/request :get "/api/v1/auth")
                                   (basic-auth-header username-and-password)))
         initial-body     (parse-body (:body initial-response))]
-    ; (timbre/warn (str "\n\n\n" initial-response "\n\n\n"))
-    ; (timbre/warn (str "\n\n\n" initial-body "\n\n\n"))
     (:token initial-body)))
 
 (defn get-token-auth-header-for-user [request username-and-password]

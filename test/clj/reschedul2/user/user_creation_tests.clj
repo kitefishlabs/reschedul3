@@ -4,6 +4,7 @@
             [reschedul2.test-utils :refer [parse-body]]
             [reschedul2.db.core :as db]
             [reschedul2.test-utils :as helper]
+            [environ.core :as env]
             [ring.mock.request :as mock]
             [cheshire.core :as ch]
             [clj-time.core :as t]
@@ -47,11 +48,11 @@
 (deftest can-successfully-create-a-new-user-who-is-given-basic-permission-as-default
   (testing "Can successfully create a new user who is given basic permission as default"
     (is (= 0 (count (db/all-registered-users))))
-    (let [response            (create-user {:email "new@user.com" :username "NewUser" :password "pass"})
-          body                (parse-body (:body response))
-          new-registered-user (db/get-registered-user-details-by-username (:username body))
-          new-users-permission (:permission (db/get-permission-for-user (:_id new-registered-user)))
-          created_on          (:created_on new-registered-user)]
+    (let [response              (create-user {:email "new@user.com" :username "NewUser" :password "pass"})
+          body                  (parse-body (:body response))
+          new-registered-user   (db/get-registered-user-details-by-username (:username body))
+          new-users-permission  (:permission (db/get-permission-for-user (.toString (:_id new-registered-user))))
+          created_on            (:created_on new-registered-user)]
           ; registered-at       (subs (str (:created_on new-registered-user)) 0 8)]
           ; expected-time       (subs (str (c/to-long (t/now)) 0 8))]
       (timbre/warn created_on)
@@ -60,7 +61,7 @@
       (is (= "NewUser"     (:username body)))
       (is (= "NewUser"     (str (:username new-registered-user))))
       (is (> created_on    0))
-      (is (= "basic"       (:permission-level new-users-permission))))))
+      (is (= "basic"       new-users-permission)))))
 
 (deftest can-not-create-a-user-if-username-already-exists-using-the-same-case
   (testing "Can not create a user if username already exists using the same case"

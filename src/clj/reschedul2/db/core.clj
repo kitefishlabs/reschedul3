@@ -6,7 +6,8 @@
             [monger.result :refer [acknowledged?]]
             [mount.core :refer [defstate]]
             [buddy.hashers :as hashers]
-            [environ.core :refer [env]]
+            [reschedul2.config :refer [env]]
+            ; [environ.core :refer [env]]
             [taoensso.timbre :as timbre]
             [ring.util.http-response :refer [not-found]])
   (:import (org.bson.types ObjectId)))
@@ -26,15 +27,11 @@
 
 
 (defstate db*
-  :start  (->
-            env
-            :database-url
-            mg/connect-via-uri)
+  :start (-> env :database-url mg/connect-via-uri)
   :stop (-> db* :conn mg/disconnect))
 
 (defstate db
   :start (:db db*))
-
 
 ;;;;;;;;;;;;;;;;;
 ; create-password-reset-key-table-if-not-exists! []
@@ -122,7 +119,8 @@
 
 
 
-(defn insert-registered-user! [eml uname pass created-on]
+(defn insert-registered-user!
+  [eml uname pass created-on]
   (mc/insert-and-return db "users" {:_id (ObjectId.)
                                     :email eml
                                     :username uname
@@ -133,14 +131,19 @@
 ;   ; (timbre/warn (str "new perms: " new-perm))
 ;   (mc/update-and-return db "users" {:_id (ObjectId. id)} {$set {:permission-level new-perm}}))
 
-(defn update-registered-user! [id new-email new-username new-password new-refresh-token]
-  (mc/update db "users" {:_id id} {$set
-                                    {:email new-email
-                                     :username new-username
-                                     :password new-password
-                                     :refresh_token new-refresh-token}}))
+(defn update-registered-user!
+  [id new-email new-username new-password new-refresh-token]
+  ; (timbre/warn (str "new-email: " new-email "\n\n\n"))
+  (mc/save-and-return db "users"
+    { :_id (ObjectId. id)
+      :email new-email
+      :username new-username
+      :password new-password
+      :refresh_token new-refresh-token}))
 
-(defn update-registered-user-password! [id new-password]
+
+(defn update-registered-user-password!
+  [id new-password]
   (mc/update db "users" {:_id (ObjectId. id)} {$set {:password new-password}}))
 
 (defn update-registered-user-refresh-token! [id refresh-token]

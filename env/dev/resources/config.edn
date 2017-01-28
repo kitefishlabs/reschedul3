@@ -5,8 +5,6 @@
 
  :database-url "mongodb://127.0.0.1/reschedul2-testdb"
 
- :permission-levels ["basic"          ; can create, view, edit, delete owned items; 
+ :permission-levels ["basic"          ; can create, view, edit, delete owned items;
                      "organizer"      ; can assign, edit all (most) items, update public pages
-                     "admin"]
-
- :reset-users true}
+                     "admin"]}

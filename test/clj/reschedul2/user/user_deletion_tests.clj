@@ -12,22 +12,19 @@
   (try
     (db/clear-permissions!)
     (db/clear-users!)
+    (db/clear-user-permissions!)
     (db/insert-permission! "basic")
     (helper/add-users)
     (is (= 2 (count (db/all-registered-users))))
-    (f)
-    (finally
-      (do
-        (db/clear-users!)
-        (db/clear-permissions!)))))
+    (f)))
 
 (use-fixtures :once
   (fn [f]
     (mount/start
       #'reschedul2.config/env
-      #'reschedul2.db.core/db
-      #'reschedul2.db.core/db*)
-    (f)))
+      #'reschedul2.db.core/db)
+    (f)
+    (mount/stop)))
 
 (use-fixtures :each setup-teardown)
 
