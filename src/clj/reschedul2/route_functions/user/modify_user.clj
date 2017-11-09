@@ -34,6 +34,6 @@
     ; (timbre/warn (str auth " " admin? " " modifying-self? " " admin-or-self? " " modify? " " current-user-info " " current-user-info " " email))
     (timbre/warn (str modify? " " current-user-info "  " username "  " password "  " email))
     (cond
-      modify?                    (modify-user current-user-info username password email)
-      (not admin?)               (respond/unauthorized {:error "Not authorized"})
-      (empty? current-user-info) (respond/not-found {:error "Userid does not exist"}))))
+      (not admin-or-self?)       (respond/unauthorized {:error "Not authorized"})
+      (empty? current-user-info) (respond/not-found {:error "Userid does not exist"})
+      modify?                    (modify-user current-user-info username password email))))

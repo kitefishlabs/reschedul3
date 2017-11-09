@@ -16,7 +16,8 @@
   "Generate response for user deletion"
   [request id]
   (let [auth           (get-in request [:identity :permission-level])
+        admin?          (= auth "admin")
         deleting-self? (= (str id) (get-in request [:identity :_id]))]
-    (if (or (.contains auth "admin") deleting-self?)
+    (if (or admin? deleting-self?)
       (delete-user id)
       (respond/unauthorized {:error "Not authorized"}))))

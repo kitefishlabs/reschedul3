@@ -35,8 +35,8 @@
   (testing "Can delete user permission with valid token and admin permissions"
     (let [user-id-1         (:_id (db/get-registered-user-by-username "JarrodCTaylor"))
           user-id-2         (:_id (db/get-registered-user-by-username "Everyman"))
-          _                 (db/insert-permission-for-user! user-id-1 "admin")
-          _                 (db/insert-permission-for-user! user-id-2 "other")
+          _                 (db/insert-permission-for-user! (.toString user-id-1) "admin")
+          _                 (db/insert-permission-for-user! (.toString user-id-2) "other")
           _                 (is (= "other" (:permission (db/get-permission-for-user (.toString user-id-2)))))
           response          ((app) (-> (mock/request :delete (str "/api/v1/permission/user/" user-id-2))
                                        (mock/content-type "application/json")
@@ -51,7 +51,7 @@
 (deftest can-not-delete-user-permission-with-valid-token-and-no-admin-permissions
   (testing "Can not delete user permission with valid token and no admin permissions"
     (let [user-id-1  (:_id (db/get-registered-user-by-username "JarrodCTaylor"))
-          _          (db/insert-permission-for-user! user-id-1 "admin")
+          _          (db/insert-permission-for-user! (.toString user-id-1) "admin")
           _          (is (= "admin" (:permission (db/get-permission-for-user user-id-1))))
           response   ((app) (-> (mock/request :delete (str "/api/v1/permission/user/" user-id-1))
                                 (mock/content-type "application/json")

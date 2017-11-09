@@ -37,7 +37,7 @@
     (let [user-id-1         (:_id (db/get-registered-user-by-username "JarrodCTaylor"))
           user-id-2         (:_id (db/get-registered-user-by-username "Everyman"))
           _                 (is (= "basic" (:permission (db/get-permission-for-user user-id-1))))
-          _                 (db/insert-permission-for-user! user-id-1 "admin")
+          _                 (db/insert-permission-for-user! (.toString user-id-1) "admin")
           _                 (is (= "admin" (:permission (db/get-permission-for-user user-id-1))))
           response          ((app) (-> (mock/request :post (str "/api/v1/permission/user/" user-id-2) (ch/generate-string {:permission "organizer"}))
                                        (mock/content-type "application/json")
@@ -53,7 +53,7 @@
   (testing "Attempting to add a permission that does not exist returns 404"
     (let [user-id-1         (:_id (db/get-registered-user-by-username "JarrodCTaylor"))
           user-id-2         (:_id (db/get-registered-user-by-username "Everyman"))
-          _                 (db/insert-permission-for-user! user-id-1 "admin")
+          _                 (db/insert-permission-for-user! (.toString user-id-1) "admin")
           _                 (is (= "basic" (:permission (db/get-permission-for-user user-id-2))))
           response ((app) (-> (mock/request :post (str "/api/v1/permission/user/" user-id-2))
                               (mock/content-type "application/json")

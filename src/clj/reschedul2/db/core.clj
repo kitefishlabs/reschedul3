@@ -89,7 +89,7 @@
     (mq/find {})
     (mq/fields [:_id])
     (mq/sort {:_id -1})))
-    ; (mq/paginate :page 1 :per-page 10)))
+    ;(mq/paginate :page 1 :per-page 10)))
     ;(mq/fields [:_id :email :username])
     ;(sort (array-map :username 1))
     ;(mq/paginate :page 1 :per-page 10)))
@@ -100,9 +100,16 @@
 (defn get-registered-user-by-username [uname]
   (mc/find-one-as-map db "users" {:username uname}))
 
-(defn get-registered-user-by-email [eml]
-  (mc/find-one-as-map db "users" {:email eml}))
+(defn get-registered-user-by-email [email]
+  (mc/find-one-as-map db "users" {:email email}))
 
+(defn registered-users-with-username? [uname]
+  (> (mc/count db "users" {:username {$regex uname $options "i"}})
+     0))
+
+(defn registered-users-with-email? [email]
+  (> (mc/count db "users" {:email {$regex email $options "i"}})
+     0))
 
 (defn get-registered-user-details-by-username [uname]
   (get-registered-user-by-username uname))
@@ -133,7 +140,6 @@
 
 (defn update-registered-user!
   [id new-email new-username new-password new-refresh-token]
-  ; (timbre/warn (str "new-email: " new-email "\n\n\n"))
   (mc/save-and-return db "users"
     { :_id (ObjectId. id)
       :email new-email
@@ -163,26 +169,24 @@
       (mc/save-and-return db "users"
         (assoc-in user-to-nullify [:refresh_token] 0)))))
 
-; (nullify-refresh-token! "aaa")
-
-
-(defn delete-registered-user! [id]
-  (mc/remove db "users" {:_id (ObjectId. id)}))
-
-
 
 (defn get-permission-for-user [uid]
-  (timbre/warn (str "\n\n\n USER PERM GET:  " uid "\n\n\n"))
   (mc/find-one-as-map db "user_permission" {:user_id (.toString uid)}))
 
 (defn insert-permission-for-user! [uid perm]
-  (let [uidstr (.toString uid)
-        user-perm (get-permission-for-user uidstr)]
-    (timbre/warn (str "\n\n\n USER PERM:  " uidstr "\n\n\n"))
+  (let [user-perm (get-permission-for-user uid)]
+   (if (nil? user-perm)
     (mc/save-and-return db "user_permission"
-      {:_id (if (nil? user-perm) (ObjectId.) (:_id user-perm))
-       :user_id uidstr
-       :permission perm})))
+     {:_id (ObjectId.)
+      :user_id uid
+      :permission perm})
+    (do
+     (mc/remove db "user_permission"
+      {:_id user-perm})
+     (mc/save-and-return db "user_permission"
+      {:_id (:_id user-perm)
+       :user_id uid
+       :permission perm})))))
 
 (defn delete-user-permission! [uid perm]
   (let [uidstr (.toString uid)]
@@ -191,66 +195,11 @@
                                        :permission perm})
       (insert-permission-for-user! uidstr "basic"))))
 
-
-
-
-
-
-
-
-; (timbre/warn (str "INSERT PERM FOR USER: " uid " | " perm "\n\n\n"))
-
-
-; (defn insert-auth-token [auth-record]
-;   (mc/insert-and-return db "auth-tokens" auth-record))
-
-
-
-;
-; ; USERS
-; (defn create-user! [user]
-;   (mc/insert-and-return db "users" (merge user {:_id (ObjectId.)})))
-;
-; ; http://stackoverflow.com/questions/2342579/http-status-code-for-update-and-delete#2342589
-; ; when updating password, does confirm- need to be dissoc'ed???
-;
-; (defn update-user! [updated-user]
-;   (let
-;     [_id (ObjectId. (:_id updated-user))
-;      res (acknowledged? (mc/update-by-id db "users" _id (dissoc updated-user :_id)))]
-;     (json-friendly (mc/find-one-as-map db "users" {:_id _id}))))
-;
-;
-; (defn delete-user! [user]
-;   (let [_id (:_id user)]
-;     (acknowledged? (mc/remove-by-id db "users" _id))))
-;     ; if-let -> ID not found error
-;
-;
-; (defn get-user [id]
-;   (json-friendly
-;     (mc/find-one-as-map db "users" {:_id (ObjectId. id)})))
-;
-; (defn get-all-users []
-;   (mq/with-collection
-;     db
-;     "users"
-;     (mq/find {})
-;     (mq/sort (array-map :name -1))))
-;
-; (defn get-user-by-id [id]
-;   (mc/find-one-as-map db "users" {:_id (ObjectId. id)}))
-;
-; (defn get-user-by-username [uname]
-;   (mc/find-one-as-map db "users" {:username uname}))
-;
-; (defn get-user-by-email [email]
-;   (mq/with-collection
-;     db
-;     "users"
-;     (mq/find {:contact-info.email email})
-;     (mq/sort (array-map :last_name -1))))
-;
+(defn delete-registered-user! [id]
+  (do
+    (mc/remove db "user_permission" {:user_id (.toString id)
+                                     :permission "basic"})
+    (mc/remove db "users" {:_id (ObjectId. id)})))
 
 
 

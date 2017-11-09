@@ -36,7 +36,7 @@
   (testing "Can delete refresh token with valid refresh token"
     (let [user-id-1    (:_id (db/get-registered-user-by-username "JarrodCTaylor"))
           _            (is (= "basic" (:permission (db/get-permission-for-user user-id-1))))
-          _            (db/insert-permission-for-user! user-id-1 "admin")
+          _            (db/insert-permission-for-user! (.toString user-id-1) "admin")
           _            (is (= "admin" (:permission (db/get-permission-for-user user-id-1))))
 
           initial-response         ((app) (-> (mock/request :get "/api/v1/auth")
@@ -46,8 +46,6 @@
           refresh-delete-response  ((app) (mock/request :delete (str "/api/v1/refresh-token/" refresh-token)))
           body                     (helper/parse-body (:body refresh-delete-response))
           registered-user-row      (db/get-registered-user-by-id (.toString user-id-1))]
-      (timbre/warn (str "\n\n refresh-token: " refresh-token "\n\n\n"))
-      (timbre/warn (str "\n\n registered-user-row: " registered-user-row "\n\n\n"))
       (is (= 200 (:status refresh-delete-response)))
       (is (= "Refresh token successfully deleted" (:message body)))
       (is (= 0 (:refresh_token registered-user-row))))))
@@ -58,6 +56,3 @@
           body                     (helper/parse-body (:body refresh-delete-response))]
       (is (= 404 (:status refresh-delete-response)))
       (is (= "The refresh token does not exist" (:error body))))))
-
-; (setup-teardown can-delete-refresh-token-with-valid-refresh-token)
-; (setup-teardown attempting-to-delete-an-invalid-refresh-token-returns-an-error)

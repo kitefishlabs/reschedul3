@@ -10,8 +10,8 @@
 
 (defn setup-teardown [f]
   (try
-    (db/clear-permissions!)
     (db/clear-users!)
+    (db/clear-permissions!)
     (db/clear-user-permissions!)
     (db/insert-permission! "basic")
     (helper/add-users)
@@ -22,7 +22,8 @@
   (fn [f]
     (mount/start
       #'reschedul2.config/env
-      #'reschedul2.db.core/db)
+      #'reschedul2.db.core/db
+      #'reschedul2.db.core/db*)
     (f)
     (mount/stop)))
 
@@ -33,17 +34,16 @@
     (is (= 2 (count (db/all-registered-users))))
     (let [user-id-1         (:_id (db/json-friendly (db/get-registered-user-by-username "JarrodCTaylor")))
           user-id-2         (:_id (db/json-friendly (db/get-registered-user-by-username "Everyman")))
-          _                 (is (= 2 (count (db/all-registered-users))))]
-      (is (= "basic" (db/get-permission-for-user user-id-1))))))
-      ;     _                 (db/insert-permission! "admin")])))
-      ;     _                 (db/insert-permission-for-user! user-id-1 "admin")
-      ;     response          ((app) (-> (mock/request :delete (str "/api/v1/user/" user-id-2))
-      ;                                  (mock/content-type "application/json")
-      ;                                  (helper/get-token-auth-header-for-user "JarrodCTaylor:pass")))
-      ;     body              (helper/parse-body (:body response))
-      ;     expected-response (str "User id " user-id-2 " successfully removed")]
-      ; (timbre/warn (str "\n\n\n" body "\n\n\n"))
-      ; (is (= 200               (:status response)))
-      ; (is (= expected-response (:message body))))))
-      ; (is (= 1                 (count (query/all-registered-users query/db))))
-      ; (is (= nil (helper/get-permission-for-user user-id-2))))))
+          _                 (is (= 2 (count (db/all-registered-users))))
+          _                 (db/insert-permission! "admin")
+          _                 (db/insert-permission-for-user! user-id-1 "admin")
+          response          ((app) (-> (mock/request :delete (str "/api/v1/user/" user-id-2))
+                                       (mock/content-type "application/json")
+                                       (helper/get-token-auth-header-for-user "JarrodCTaylor:pass")))
+          body              (helper/parse-body (:body response))
+          expected-response (str "User id " user-id-2 " successfully removed")]
+      (is (= "admin" (:permission (db/get-permission-for-user user-id-1))))
+      (is (= 200               (:status response)))
+      (is (= expected-response (:message body)))
+      (is (= 1                 (count (db/all-registered-users))))
+      (is (= nil (helper/get-permission-for-user user-id-2))))))
