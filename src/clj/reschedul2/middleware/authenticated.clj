@@ -8,10 +8,6 @@
    authenticated a 401 not authorized response will be returned"
   [handler]
   (fn [request]
-    ; (timbre/warn (str "\n\n\n\n\nAUTH???:" (authenticated? request) "\n\n\n\n
-    ; n"))
     (if (authenticated? request)
-      ; (do
-        ; (timbre/warn (str "req: " request "\n\n\n"))
       (handler request)
       (unauthorized {:error "Not authorized"}))))

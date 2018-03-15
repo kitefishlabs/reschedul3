@@ -11,10 +11,8 @@
   (let [registered-user-username (db/get-registered-user-details-by-username identifier)
         registered-user-email    (db/get-registered-user-details-by-email identifier)
         registered-user          (first (remove nil? [registered-user-username registered-user-email]))]
-    (timbre/warn (str "RU: " registered-user "\n\n\n\n\n"))
     (when-not (nil? registered-user)
       (let [new-user-permission (:permission (db/get-permission-for-user (:_id registered-user)))]
-        (timbre/warn "new user perm: " new-user-permission)
         {:user-data (-> registered-user
                         (assoc-in [:username] (:username registered-user))
                         (assoc-in [:permission-level] new-user-permission)
@@ -34,7 +32,6 @@
   (let [identifier  (:username auth-data)
         password    (:password auth-data)
         user-info   (get-user-info identifier)]
-    (timbre/warn (str "\n\n\n user-info" user-info "\n\n\n"))
     (if (and user-info (hashers/check password (:password user-info)))
       (:user-data user-info)
       false)))

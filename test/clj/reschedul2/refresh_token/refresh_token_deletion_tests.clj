@@ -42,7 +42,7 @@
           initial-response         ((app) (-> (mock/request :get "/api/v1/auth")
                                               (helper/basic-auth-header "JarrodCTaylor:pass")))
           initial-body             (helper/parse-body (:body initial-response))
-          refresh-token            (:refreshToken initial-body)
+          refresh-token            (:refresh_token initial-body)
           refresh-delete-response  ((app) (mock/request :delete (str "/api/v1/refresh-token/" refresh-token)))
           body                     (helper/parse-body (:body refresh-delete-response))
           registered-user-row      (db/get-registered-user-by-id (.toString user-id-1))]

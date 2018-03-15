@@ -16,7 +16,7 @@
                             :username String
                             :permission-level String
                             :token String
-                            :refreshToken String}
+                            :refresh_token String}
            :header-params [authorization :- String]
            :middleware    [basic-auth-mw cors-mw authenticated-mw]
            :summary       "Returns auth info given a username and password in the '`Authorization`' header."

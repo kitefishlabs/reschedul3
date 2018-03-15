@@ -36,8 +36,8 @@
 
 
 (defn add-users []
-  (let [user-1 {:email "j@man.com" :username "JarrodCTaylor" :password "pass"}
-        user-2 {:email "e@man.com" :username "Everyman"      :password "pass"}]
+  (let [user-1 {:email "j@man.com" :username "JarrodCTaylor" :password "pass" :state "verified"}
+        user-2 {:email "e@man.com" :username "Everyman"      :password "pass" :state "created"}]
     ((app) (-> (mock/request :post "/api/v1/user")
                (mock/content-type "application/json")
                (mock/body (ch/generate-string user-1))))

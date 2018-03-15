@@ -1,26 +1,22 @@
-(ns reschedul2.routes.services.user
+(ns reschedul2.route-functions.user.user
   (:require [compojure.api.sweet :refer :all]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [reschedul2.db.core :as db]))
 
-; Non-public contact info
-; + all contact info must be protected by auth/perms
-; (s/defschema ContactInfo {(s/optional-key :cell-phone)               s/Str
-;                           (s/optional-key :second-phone)             s/Str
-;                           (s/optional-key :email)                    s/Str
-;                           (s/optional-key :address)                  s/Str
-;                           (s/optional-key :preferred_contact_method) (s/enum :cell :email :second-phone)})
+(s/defschema UserState
+ (s/enum :created :verified :locked))
 
-; basic user info and embedded contact + social info
-(s/defschema User {:_id                                 s/Str
-                   :username                            s/Str
-                   (s/optional-key :password)           (s/maybe s/Str)
-                   (s/optional-key :password-confirm)   (s/maybe s/Str)
-                   :first_name                          s/Str
-                   :last_name                           s/Str
-                   :admin                               s/Bool})
+(s/defschema User
+ {:_id                                s/Str
+  :username                           s/Str
+  :password                           s/Str
+  :email                              s/Str
+  :created_on                         s/Int
+  :state                              UserState
+  (s/optional-key :website)           (s/maybe s/Str)
+  (s/optional-key :twitter)           (s/maybe s/Str)
+  (s/optional-key :facebook)          (s/maybe s/Str)
+  (s/optional-key :refresh_token)     (s/maybe s/Str)})
 
-
-                  ;  :contact-info                        ContactInfo})
-
-(s/defschema NewUser (dissoc User :_id))
-(s/defschema UpdatedUser NewUser)
+(s/defschema NewUser {:username s/Str})
+(s/defschema UpdatedUser User)

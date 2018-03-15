@@ -31,6 +31,8 @@
     (db/clear-permissions!)
     (db/clear-user-permissions!)
     (db/insert-permission! "basic")
+    (db/insert-permission! "organizer")
+    (db/insert-permission! "admin")
     (f)))
 
 (use-fixtures :once
@@ -48,15 +50,16 @@
 (deftest can-successfully-create-a-new-user-who-is-given-basic-permission-as-default
   (testing "Can successfully create a new user who is given basic permission as default"
     (is (= 0 (count (db/all-registered-users))))
-    (let [response              (create-user {:email "new@user.com" :username "NewUser" :password "pass"})
+    (let [response              (create-user {:email "new@user.com"
+                                              :username "NewUser"
+                                              :password "pass"
+                                              :state :created})
           body                  (parse-body (:body response))
           new-registered-user   (db/get-registered-user-details-by-username (:username body))
-          new-users-permission  (:permission (db/get-permission-for-user (.toString (:_id new-registered-user))))
+          id                    (:_id new-registered-user)
+          new-users-permission  (:permission (db/get-permission-for-user id))
           created-on            (c/to-long (:created_on new-registered-user))
           expected-time         (c/to-long (t/now))]
-      (timbre/warn "----------")
-      (timbre/warn created-on)
-      (timbre/warn expected-time)
       (is (= 201        (:status response)))
       (is (= 1          (count (db/all-registered-users))))
       (is (= "NewUser"  (:username body)))
@@ -68,31 +71,31 @@
 (deftest can-not-create-a-user-if-username-already-exists-using-the-same-case
   (testing "Can not create a user if username already exists using the same case"
     (is (= 0 (count (db/all-registered-users))))
-    (assert-no-dup {:email "Jrock@Taylor.com"   :username "Jarrod" :password "pass"}
-                   {:email "Jam@Master.com"     :username "Jarrod" :password "pass"}
+    (assert-no-dup {:email "Jrock@Taylor.com"   :username "Jarrod" :password "pass" :state :created}
+                   {:email "Jam@Master.com"     :username "Jarrod" :password "pass" :state :created}
                    "Username already exists")))
 
 (deftest can-not-create-a-user-if-username-already-exists-using-mixed-case
   (testing "Can not create a user if username already exists using mixed case"
     (is (= 0 (count (db/all-registered-users))))
-    (assert-no-dup {:email "Jrock@Taylor.com"   :username "Jarrod" :password "pass"}
-                   {:email "Jam@Master.com"     :username "jarrod" :password "pass"}
+    (assert-no-dup {:email "Jrock@Taylor.com"   :username "Jarrod" :password "pass" :state :created}
+                   {:email "Jam@Master.com"     :username "jarrod" :password "pass" :state :created}
                    "Username already exists")))
 
 (deftest can-not-create-a-user-if-email-already-exists-using-the-same-case
   (testing "Can not create a user if email already exists using the same case"
-    (assert-no-dup {:email "jarrod@taylor.com" :username "Jarrod"   :password "the-first-pass"}
-                   {:email "jarrod@taylor.com" :username "JarrodCT" :password "the-second-pass"}
+    (assert-no-dup {:email "jarrod@taylor.com" :username "Jarrod"   :password "the-first-pass" :state :created}
+                   {:email "jarrod@taylor.com" :username "JarrodCT" :password "the-second-pass" :state :created}
                    "Email already exists")))
 
 (deftest can-not-create-a-user-if-email-already-exists-using-mixed-case
   (testing "Can not create a user if email already exists using mixed case"
-    (assert-no-dup {:email "wOnkY@email.com" :username "Jarrod" :password "Pass"}
-                   {:email "WonKy@email.com" :username "Jrock"  :password "Pass"}
+    (assert-no-dup {:email "wOnkY@email.com" :username "Jarrod" :password "Pass" :state :created}
+                   {:email "WonKy@email.com" :username "Jrock"  :password "Pass" :state :created}
                    "Email already exists")))
 
 (deftest can-not-create-a-user-if-username-and-email-already-exist-using-same-and-mixed-case
   (testing "Can not create a user if username and email already exist using same and mixed case"
-    (assert-no-dup {:email "wOnkY@email.com" :username "jarrod" :password "pass"}
-                   {:email "WonKy@email.com" :username "jaRrod" :password "pass"}
+    (assert-no-dup {:email "wOnkY@email.com" :username "jarrod" :password "pass" :state :created}
+                   {:email "WonKy@email.com" :username "jaRrod" :password "pass" :state :created}
                    "Username and Email already exist")))

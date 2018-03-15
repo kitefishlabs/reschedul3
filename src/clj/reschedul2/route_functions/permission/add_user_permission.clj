@@ -25,6 +25,6 @@
   "Generate response for permission creation"
   [request id permission]
   (let [auth (get-in request [:identity :permission-level])]
-    (if (.contains auth "admin")
+    (if (= auth "admin")
       (add-user-permission id permission)
       (respond/unauthorized {:error "Not authorized"}))))

@@ -8,9 +8,7 @@
   "Remove refresh token (error if doesn't exist)"
   [refresh-token]
   (if-let [should-be-zero (db/nullify-refresh-token! refresh-token)]
-    (do
-      (timbre/warn (str "should-be-zero: " should-be-zero "\n\n"))
-      (if (zero? (:refresh_token should-be-zero))
-        (respond/ok         {:message "Refresh token successfully deleted"})
-        (respond/not-found  {:error "The refresh token does not exist"})))
+    (if (zero? (:refresh_token should-be-zero))
+     (respond/ok         {:message "Refresh token successfully deleted"})
+     (respond/not-found  {:error "The refresh token does not exist"}))
     (respond/not-found  {:error "The refresh token does not exist"})))

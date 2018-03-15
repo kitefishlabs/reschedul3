@@ -7,20 +7,24 @@
             [clj-time.coerce :as c]))
 
 (defn create-new-user
-  "Create user with `email`, `username`, `password`"
-  [email username password]
+  "Create user with `username`, `email`, `password`, `state`"
+  [username email password state]
   (let [hashed-password (hashers/encrypt password)
-        new-user        (db/json-friendly (db/insert-registered-user! email username hashed-password (c/to-long (t/now))))
+        new-user        (db/json-friendly (db/insert-registered-user! email username hashed-password state (c/to-long (t/now))))
         _               (db/insert-permission-for-user! (:_id new-user) "basic")]
     (respond/created {} {:username (str (:username new-user))})))
 
 (defn create-user-response
   "Generate response for user creation"
-  [email username password]
-  (let [username-exists? (db/registered-users-with-username? username)
-        email-exists?    (db/registered-users-with-email? email)]
+  [username email password state]
+  (let [uname-nil? (nil? username)
+        email-nil? (nil? email)
+        pass-nil? (nil? password)
+        username-exists? (db/registered-user-with-username? username)
+        email-exists?    (db/registered-user-with-email? email)]
     (cond
       (and username-exists? email-exists?) (respond/conflict {:error "Username and Email already exist"})
+      (or uname-nil? email-nil? pass-nil?) (respond/conflict {:error "Username, Email, Password must be provided"})
       username-exists?                     (respond/conflict {:error "Username already exists"})
       email-exists?                        (respond/conflict {:error "Email already exists"})
-      :else                                (create-new-user email username password))))
+      :else                                (create-new-user username email password state))))

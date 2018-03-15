@@ -1,6 +1,6 @@
 (ns reschedul2.general-functions.user.create-token
   (:require [environ.core :refer [env]]
-            [clj-time.core :as time]
+            [clj-time.core :as t]
             [buddy.sign.jwt :as jwt]
             [reschedul2.db.core :as db]
             [taoensso.timbre :as timbre])
@@ -16,7 +16,7 @@
                          (update-in [:username] str)
                          (update-in [:email] str)
                          (assoc     :permission-level perm-level)
-                         (assoc     :exp (time/plus (time/now) (time/seconds 900))))
+                         (assoc     :exp (t/plus (t/now) (t/seconds 900))))
 
         token-contents (select-keys stringify-user [:permission-level :username :email :_id :exp])
         token-contents-id-str token-contents]
