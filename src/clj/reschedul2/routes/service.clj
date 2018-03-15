@@ -12,6 +12,8 @@
             [reschedul2.routes.services.preflight :refer :all]
             [reschedul2.routes.services.refresh-token :refer :all]
             [reschedul2.routes.services.user :refer :all]
+            [reschedul2.routes.services.venue :refer :all]
+            [reschedul2.routes.services.event :refer :all]
             [reschedul2.middleware.basic-auth :refer [basic-auth-mw]]
             [reschedul2.middleware.token-auth :refer [token-auth-mw]]
             [reschedul2.middleware.cors :refer [cors-mw]]
@@ -31,6 +33,8 @@
                      {:name "Refresh-Token" :description "Get and delete refresh-tokens"}
                      {:name "Password"      :description "Request and confirm password resets"}
                      {:name "User"          :description "Create, delete and update user details"}]}}}
+                    ;  {:name "Venue"         :description "Create, delete and update venue details"}
+                    ;  {:name "Event"         :description "Create, delete and update event details"}
     preflight-route
     permission-routes
     auth-routes

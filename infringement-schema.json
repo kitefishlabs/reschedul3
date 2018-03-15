@@ -1,0 +1,232 @@
+{
+  "base-types" :
+    [
+      "bool",
+      "string",
+      "url",
+      "email",
+      "phone"
+    ],
+  "custom-types" :
+    {
+      "lat-lon" :
+        {
+          "latitude": ["Lat", "float"],
+          "longitude": ["Lat", "float"]
+        },
+      "contact" :
+        {
+          "name" :  ["Name", "string"],
+          "email" : ["Email", "email"],
+          "phone" : ["Phone", "phone"],
+          "role" : ["Role", "string"]
+        },
+      "member-info" :
+        {
+          "name" : ["Name", "string"],
+          "role" : ["Role", "string"]
+        },
+    },
+  "schedule-limits" :
+    {
+      "days" : 11,
+      "hours" : 19,
+      "start-hour" : 8,
+      "increment" : 1,
+      "day-0-month" : 7,
+      "day-0-date" : 26,
+      "year" : 2017
+    },
+  "keywords" :
+    {
+      "user_state" :
+        [
+          "created",
+          "verified",
+          "verified-phone",
+          "promoted-to-organizer",
+          "promoted-to-admin"
+        ],
+      "user_role" :
+        [
+          "basic",
+          "organizer",
+          "admin"
+        ],
+      "event-discipline" :
+        [
+          "music",
+          "theater",
+          "film",
+          "dance",
+          "visual-art",
+          "spoken-word",
+          "other"
+        ],
+      "event-genre" :
+        [
+          "rock",
+          "classical",
+          "jazz",
+          "reggae",
+          "electronica",
+          "avant garde",
+          "documentary",
+          "feature film",
+          "music video"
+        ],
+      "venue-state" :
+        [
+          "created",
+          "accepted-assigned",
+          "finalized",
+          "confirmed",
+          "ready-for-web",
+          "ready-for-print",
+          "cancelled"
+        ],
+      "venue-category" :
+        [
+          "hall",
+          "bar",
+          "restaurant",
+          "coffee shop",
+          "gallery",
+          "store",
+          "garage/industrial",
+          "backyard",
+          "street",
+          "studio"
+        ],
+      "event-state" :
+        [
+          "created-unsubmitted",
+          "submitted",
+          "accepted-assigned",
+          "finalized",
+          "confirmed",
+          "ready-for-web",
+          "ready-for-print",
+          "cancelled"
+        ],
+      "event-category" :
+        [
+          "performance",
+          "installation",
+          "gallery",
+          "screening",
+          "workshop",
+          "presentation",
+          "social"
+        ]
+
+    },
+  "user" :
+    {
+      "username" : ["Username", "string"],
+      "fullname" : ["Full name", "string"],
+      "email" : ["Email", "email"],
+      "phone" : ["Phone", "phone"],
+      "zip_code" : ["Zip code", "zip"],
+
+      "website" : ["Web site", "url"],
+      "facebook" : ["Facebook", "url"],
+      "twitter" : ["Twitter", "url"],
+      "notes" : ["Notes", "string"]
+    },
+  "venue" :
+    {
+      "primary-contact" : ["*Primary contact", "contact"],
+      "name" : ["*Full official name of venue", "string"],
+      "nickname" : ["Nickname", "string"],
+      "owner" : ["Venue owner", "contact"],
+      "address" : ["*Address", "string"],
+      "gps" : ["GPS coordinates", "lat-lon"],
+      "type" : ["*Type of venue", "kw-venue-type"],
+      "additional-contacts" : ["Additional contacts", "contact"],
+
+      "in-house-pa?" : ["PA in house?", "bool"],
+      "paid-sound-engineer?" : ["House sound engineer?", "bool"],
+      "paid-door-person?" : ["House door/security?", "bool"],
+      "stage?" : ["Stage?", "bool"],
+      "dance-floor?" : ["Dance floor?", "bool"],
+      "theater-stage?" : ["Theater stage?", "bool"],
+      "wall-space" : ["Wall space (for art)?", "bool"],
+      "in-house-projector?" : ["Projector?", "bool"],
+      "in-house-screen?" : ["Screen?", "bool"],
+      "specifics-notes" : ["Describe specifics for any of the above", "string"],
+
+      "description-short" : ["Short description", "string"],
+      "description-full" : ["Detailed description", "string"],
+      "website" : ["Web URL", "url"],
+      "facebook" : ["Facebook URL", "url"],
+      "twitter" : ["Twitter URL", "url"],
+      "photo" : ["Photo URL", "url"]
+    },
+  "event" :
+    {
+      "primary-contact" : ["", "contact"],
+      "title" : ["", "string"],
+      "author" : ["", "string-optional"],
+      "type" : ["", "proposal-types"],
+      "discipline" : ["", "discipline"],
+      "genre" : ["", "genre"],
+      "additional-genres" : ["", "genre-optional"],
+      "additional-contacts" : ["", "contact-optional"],
+      "members" : ["", "member-infos-optional"],
+
+      "description-short" : ["", "string"],
+      "description-full" : ["", "string"],
+      "website" : ["", "url"],
+      "facebook" : ["", "url"],
+      "twitter" : ["", "url"],
+      "photo" : ["", "url"],
+      "video" : ["", "url"],
+      "cast-crew" : ["", "string"],
+
+      "preferred-venue" : ["", "string"],
+      "prearranged-venue" : ["", "string"],
+      "equipment" : ["", "string"],
+      "equipment-to-share" : ["", "string"],
+      "equipment-needed" : ["", "string"],
+      "projector-needed?" : ["", "bool"],
+      "family-friendly?" : ["", "bool"],
+      "adults-only?" : ["", "bool"],
+      "by-discipline" :
+        {
+          "music" :
+            {
+              "loudness" : ["", "0"],
+              "ensemble-size" : ["", "string"],
+              "drums-size" : ["", "string"],
+              "pa-needed?" : ["", "bool"],
+              "vocal-mics-needed" : ["", "0"],
+              "can-play-acoustic?" : ["", "bool"],
+              "can-play-outside?" : ["", "bool"]
+            },
+          "dance" :
+            {
+              "space-size-needs" : ["", "string"],
+              "need-dance-floor?" : ["", "bool"],
+              "can-perform-outside?" : ["", "bool"],
+              "sound-system-needed?" : ["", "bool"]
+            },
+          "theater" :
+            {
+              "space-size-needs" : ["", "string"],
+              "need-dressing-room?" : ["", "bool"],
+              "pa-needed?" : ["", "bool"],
+              "sound-system-needed?" : ["", "bool"]
+            },
+          "visual-art" :
+            {
+              "number-of-pieces" : ["", "0"],
+              "dimensions-descriptions" : ["", "string"],
+              "media" : ["", "string"]
+            }
+        },
+      "yes-no-question" : "I agree that I like punch." ,
+      "yes-no-question" : "I agree that I like pie." ,
+      "yes-no-question" : "I will not kill Kenny."
+    }
+}

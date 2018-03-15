@@ -212,7 +212,72 @@
 
 
 
+(defn all-venues []
+  (mq/with-collection db "venues"
+    (mq/find {})
+    (mq/fields [:_id])
+    (mq/sort {:_id -1})))
 
+(defn get-venue-by-id [id]
+  (mc/find-one-as-map db "venues" {:_id (ObjectId. id)}))
+
+(defn get-venue-by-name [vname]
+  (mc/find-one-as-map db "venues" {:name vname}))
+
+
+(defn insert-venue!
+  [vname owner-userid created-on]
+  (mc/insert-and-return db "venues" {:_id (ObjectId.)
+                                     :name vname
+                                     :owner_userid owner-userid
+                                     :created_on created-on}))
+(defn update-venue!
+  [id new-name]
+  (mc/save-and-return db "venues"
+    { :_id (ObjectId. id)
+      :name new-name}))
+
+(defn delete-venue! [id]
+  (do
+    (mc/remove db "venues" {:_id (ObjectId. id)})))
+
+(defn venue-with-name? [vname]
+  (> (mc/count db "venues" {:name {$regex vname $options "i"}})
+     0))
+
+
+
+(defn all-events []
+  (mq/with-collection db "events"
+    (mq/find {})
+    (mq/fields [:_id])
+    (mq/sort {:_id -1})))
+
+(defn get-event-by-id [id]
+  (mc/find-one-as-map db "events" {:_id (ObjectId. id)}))
+
+(defn get-event-by-name [ename]
+  (mc/find-one-as-map db "events" {:name ename}))
+
+(defn insert-event!
+  [ename owner-userid created-on]
+  (mc/insert-and-return db "events" {:_id (ObjectId.)
+                                     :name ename
+                                     :owner_userid owner-userid
+                                     :created_on created-on}))
+(defn update-event!
+  [id new-name]
+  (mc/save-and-return db "events"
+    { :_id (ObjectId. id)
+      :name new-name}))
+
+(defn delete-event! [id]
+  (do
+    (mc/remove db "events" {:_id (ObjectId. id)})))
+
+(defn event-with-name? [ename]
+  (> (mc/count db "events" {:name {$regex ename $options "i"}})
+     0))
 
 
 ; RESET/seed data
@@ -239,3 +304,9 @@
    .toString)
   "admin")
  (= 1 (count (all-registered-users))))
+
+; (seed-database!)
+; (seed-admin-user!)
+(all-registered-users)
+
+(.toString (:_id (get-registered-user-by-username "Everyman")))
