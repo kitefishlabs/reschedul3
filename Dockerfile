@@ -1,8 +1,8 @@
 FROM java:8-alpine
 MAINTAINER Your Name <you@example.com>
 
-ADD target/uberjar/reschedul2.jar /reschedul2/app.jar
+ADD target/uberjar/sand-compass.jar /sand-compass/app.jar
 
 EXPOSE 3000
 
-CMD ["java", "-jar", "/reschedul2/app.jar"]
+CMD ["java", "-jar", "/sand-compass/app.jar"]

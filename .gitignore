@@ -12,3 +12,4 @@ profiles.clj
 /log
 
 *.log
+.rebel_readline_history
